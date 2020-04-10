@@ -1,0 +1,196 @@
+function Cintensify_load():
+    set {_config} to "plugins/Cintensify/config.yml"
+    if folder "plugins/Cintensify" doesn't exists:
+        
+        set {_stime} to now
+
+        create folder "plugins/Cintensify"
+
+        create file {_config}
+
+        wf "##C_intensify 自定义强化配置文件" to {_config}
+        wf "" to {_config}
+        wf "##插件版本，请勿更改" to {_config}
+        wf "version: 1.0" to {_config}
+        wf "##强化失败后的信息" to {_config}
+        wf "failmsg: ""&a[Cintensify] &c强化失败""" to {_config}
+        wf "##强化等级" to {_config}
+        wf "levels:" to {_config}
+        wf "##等级(等级之间之间必须按照顺序排序，不可出现跨度/乱序)" to {_config}
+        wf "  1:" to {_config}
+        wf "##成功几率(x分之1 数字越大几率越小 数字不能小于1)" to {_config}
+        wf "    chance: 1" to {_config}
+        wf "##增加的lore(每次强化都会给物品新增一条lore)" to {_config}
+        wf "    addlore:" to {_config}
+        wf "    - ""&f--------强化栏--------""" to {_config}
+        wf "    - ""&a攻击力: +10""" to {_config}
+        wf "##强化成功后的信息 %%player%%=玩家名 %%name%%=装备名 %%level%%=强化等级" to {_config}
+        wf "    playermsg: ""你成功将装备强化到了1级""" to {_config}
+        wf "##强化成功后是否开启公告" to {_config}
+        wf "    enablebc: true" to {_config}
+        wf "##公告内容(enablebc=true后必填)" to {_config}
+        wf "    bcmsg: ""%%player%%成功将装备%%name%%强化到了%%level%%级""" to {_config}
+        wf "  2:" to {_config}
+        wf "    chance: 1" to {_config}
+        wf "    addlore:" to {_config}
+        wf "    - ""&a攻击力: +10""" to {_config}
+        wf "##playermsg为none即为不提示玩家" to {_config}
+        wf "    playermsg: none" to {_config}
+        wf "    enablebc: false" to {_config}
+    load yml {_config} as "Cintensify_config"
+    set {Cintensify::value::version} to yml value "version" of "Cintensify_config"
+    set {Cintensify::value::failmsg} to yml value "failmsg" of "Cintensify_config"
+    set {_count} to 0
+    set {_count+1} to 1
+    set {Cintensify::value::levels::%{_count+1}%::chance} to yml value "levels.%{_count+1}%.chance" of "Cintensify_config"
+    set {Cintensify::value::levels::%{_count+1}%::addlore::*} to yml list "levels.%{_count+1}%.addlore" of "Cintensify_config"
+    set {Cintensify::value::levels::%{_count+1}%::playermsg} to yml value "levels.%{_count+1}%.playermsg" of "Cintensify_config"
+    set {Cintensify::value::levels::%{_count+1}%::enablebc} to yml value "levels.%{_count+1}%.enablebc" of "Cintensify_config"
+    if {Cintensify::value::levels::%{_count+1}%::enablebc} is true:
+        set {Cintensify::value::levels::%{_count+1}%::bcmsg} to yml value "levels.%{_count+1}%.bcmsg" of "Cintensify_config"
+    while {Cintensify::value::levels::%{_count+1}%::*} is set:
+        add {_count+1} to {Cintensify::value::level::*}
+        add 1 to {_count}
+        add 1 to {_count+1}
+        set {Cintensify::value::levels::%{_count+1}%::chance} to yml value "levels.%{_count+1}%.chance" of "Cintensify_config"
+        set {Cintensify::value::levels::%{_count+1}%::addlore::*} to yml list "levels.%{_count+1}%.addlore" of "Cintensify_config"
+        set {Cintensify::value::levels::%{_count+1}%::playermsg} to yml value "levels.%{_count+1}%.playermsg" of "Cintensify_config"
+        set {Cintensify::value::levels::%{_count+1}%::enablebc} to yml value "levels.%{_count+1}%.enablebc" of "Cintensify_config"
+        if {Cintensify::value::levels::%{_count+1}%::enablebc} is true:
+            set {Cintensify::value::levels::%{_count+1}%::bcmsg} to yml value "levels.%{_count+1}%.bcmsg" of "Cintensify_config"
+    set {_etime} to now
+    send "&a----------------------------------------------" to console
+    send "&b[Cintensify]&d 自定义强化插件已加载 耗时 %{_stime} - {_etime}% ms" to console
+    send "&b[Cintensify]&d 定制插件请联系 QQ2773173293 插件作者: 0o酱" to console
+    send "&b[Cintensify]&d 当前插件版本为 %{Cintensify::value::version}% of 2020-4-10 版" to console
+    send "&b[Cintensify]&d 成功加载了 %{_count}% 个等级" to console
+    send "&a----------------------------------------------" to console
+    stop
+
+function Cintensify_unload():
+    unload yml "Cintensify_config"
+    delete {Cintensify::value::*}
+    send "&a----------------------------------------------" to console
+    send "&b[Cintensify]&d 自定义强化插件已卸载" to console
+    send "&b[Cintensify]&d 定制插件请联系 QQ2773173293 插件作者: 0o酱" to console
+    send "&a----------------------------------------------" to console
+    stop
+on load:
+    Cintensify_load()
+on unload:
+    Cintensify_unload()
+command /cintensify <text=help>:
+    aliases: ciy,cify,ify
+    permission: cintensify.use
+    permission message: §c你没有权限使用该指令
+    trigger:
+        if arg 1 is "help":
+            message "&a[Cintensify] &d&l强化 &6帮助"
+            message "&e/ciy help &b- 查看帮助"
+            message "&e/ciy i &b- 消耗20点券强化手中的物品"
+            if player has permission "cintensify.admin":
+                message "&e/ciy reload &b- 重载插件"
+            stop
+        else if arg 1 is "i":
+            if sender is console:
+                message "&a这个指令只能由玩家执行"
+                stop
+            if player is holding air:
+                message "&a[Cintensify] 你不能强化你的麒麟臂!"
+                stop
+            else:
+                set {_player.points} to placeholder "playerpoints_points" with player parsed as integer
+                if {_player.points} >= 20:
+                    set {_name} to name of player's tool
+                    set {_name2} to name of player's tool
+                    if {_name} is set:
+                        if {_name} contains "&0&0&c&e&b&l+":
+                            set {_n::*} to {_name} split by "+"
+                            set {_lvl} to {_n::2}
+                            set {_n2} to {_n::1}
+                            set {_lvl2} to {_lvl} parsed as integer
+                            add 1 to {_lvl2}
+                            if {Cintensify::value::levels::%{_lvl2}%::*} is set:
+                                set {_playermsg} to {Cintensify::value::levels::%{_lvl2}%::playermsg}
+                                replace every "%%player%%" in {_playermsg} with player's name
+                                replace every "%%name%%" in {_playermsg} with "%{_name2}%"
+                                replace every "%%level%%" in {_playermsg} with "%{_lvl2}%"
+                                if {_playermsg} is "none":
+                                    delete {_playermsg}
+                                set {_bcmsg} to {Cintensify::value::levels::%{_lvl2}%::bcmsg}
+                                replace every "%%player%%" in {_bcmsg} with player's name
+                                replace every "%%name%%" in {_bcmsg} with "%{_name2}%"
+                                replace every "%%level%%" in {_bcmsg} with "%{_lvl2}%"
+                                set {_chanmx} to {Cintensify::value::levels::%{_lvl2}%::chance}
+                                set {_cce} to random integer from 1 to {_chanmx}
+                                if {_cce} is 1:
+                                    if player has permission "cintensify.admin":
+                                        set {_deop} to false
+                                    else:
+                                        set {_deop} to true
+                                        op player
+                                    loop {Cintensify::value::levels::%{_lvl2}%::addlore::*}:
+                                        set {_lore} to loop-value
+                                        make player execute command "/lore add %{_lore}%"
+                                    set name of player's tool to "%{_n2}%+%{_lvl2}%"
+                                    if {_deop} is true:
+                                        deop player
+                                    if {_playermsg} is set:
+                                        message "%{_playermsg}%"
+                                    if {Cintensify::value::levels::%{_lvl2}%::enablebc} is true:
+                                        broadcast "%{_bcmsg}%"
+                                else:
+                                    message "%{Cintensify::value::failmsg}%"
+                                    stop
+                            else:
+                                message "&a[Cintensify] 该物品已达到目前的强化上限"
+                                stop
+                        else:
+                            set {_lvl2} to 1
+                            set {_playermsg} to {Cintensify::value::levels::%{_lvl2}%::playermsg}
+                            replace every "%%player%%" in {_playermsg} with player's name
+                            replace every "%%name%%" in {_playermsg} with "%{_name2}%"
+                            replace every "%%level%%" in {_playermsg} with "%{_lvl2}%"
+                            if {_playermsg} is "none":
+                                delete {_playermsg}
+                            set {_bcmsg} to {Cintensify::value::levels::%{_lvl2}%::bcmsg}
+                            replace every "%%player%%" in {_bcmsg} with player's name
+                            replace every "%%name%%" in {_bcmsg} with "%{_name2}%"
+                            replace every "%%level%%" in {_bcmsg} with "%{_lvl2}%"
+                            set {_chanmx} to {Cintensify::value::levels::%{_lvl2}%::chance}
+                            set {_cce} to random integer from 1 to {_chanmx}
+                            if {_cce} is 1:
+                                if player has permission "cintensify.admin":
+                                    set {_deop} to false
+                                else:
+                                    set {_deop} to true
+                                    op player
+                                loop {Cintensify::value::levels::%{_lvl2}%::addlore::*}:
+                                    set {_lore} to loop-value
+                                    make player execute command "/lore add %{_lore}%"
+                                set name of player's tool to "%{_name2}% &0&0&c&e&b&l+%{_lvl2}%"
+                                if {_deop} is true:
+                                    deop player
+                                if {_playermsg} is set:
+                                    message "%{_playermsg}%"
+                                if {Cintensify::value::levels::%{_lvl2}%::enablebc} is true:
+                                    broadcast "%{_bcmsg}%"
+                    else:
+                        message "&a[Cintensify] 你的手中的宝物无名无姓 无法强化"
+                        stop
+                else:
+                    message "&a[Cintensify] 你的点券不足以本次强化"
+                    broadcast "%{_player.points}%"
+                    stop
+        else if arg 1 is "reload":
+            if sender has permission "cintensify.admin":
+                Cintensify_unload()
+                Cintensify_load()
+                message "&a[Cintensify] 成功重载插件"
+                stop
+            else:
+                message "&a[Cintensify] 你没有权限使用该指令"
+                stop
+        else:
+            message "&a[Cintensify] 错误的用法 请使用/ciy help查询帮助"
+            stop
